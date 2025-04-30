@@ -1,0 +1,32 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <title>Reconocimiento facial</title>
+</head>
+<body>
+    <h1>Subir imagen para reconocimiento</h1>
+
+    <form method="POST" enctype="multipart/form-data">
+        {% csrf_token %}
+        <input type="file" name="image" accept="image/*" required><br><br>
+        <button type="submit">Subir y reconocer</button>
+    </form>
+
+    {% if recognized %}
+        <h2>Persona reconocida:</h2>
+        <p><strong>Nombre:</strong> {{ recognized.nombre }} {{ recognized.apellidos }}</p>
+        <p><strong>DNI:</strong> {{ recognized.dni }}</p>
+        <p><strong>Edad:</strong> {{ recognized.edad }}</p>
+        <p><strong>Género:</strong> {{ recognized.genero }}</p>
+
+        {% if recognized.foto %}
+            <h3>Imagen registrada:</h3>
+            <img src="{{ recognized.foto }}" alt="Foto registrada" width="300">
+        {% endif %}
+
+    {% elif error %}
+        <h2 style="color: red;">{{ error }}</h2>
+    {% endif %}
+</body>
+</html>

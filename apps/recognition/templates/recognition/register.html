@@ -1,0 +1,14 @@
+<h2>Registrar nueva persona</h2>
+<form method="post">
+  {% csrf_token %}
+  <label>DNI:</label><br>
+  <input type="text" name="dni" required><br><br>
+
+  <label>Nombre:</label><br>
+  <input type="text" name="nombre" required><br><br>
+
+  <label>Apellidos:</label><br>
+  <input type="text" name="apellidos" required><br><br>
+
+  <button type="submit">Registrar persona</button>
+</form>
