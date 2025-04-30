@@ -56,3 +56,5 @@ wcwidth==0.2.13
 deepface==0.0.79
 tf-keras==2.19.0
 tensorflow==2.19.0
+face_recognition
+retina_face
