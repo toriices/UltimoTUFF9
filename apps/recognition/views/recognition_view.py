@@ -11,13 +11,19 @@ def upload_and_recognize(request):
         image = request.FILES['image']
 
         result = face_service.get_embedding(image)
-        
+
         if result is not None:
             embedding, edad, genero = result
             person = face_service.find_best_match(embedding)
 
             if person:
-                # Guardar edad y género si aún no están en la base de datos
+                # Normalizar género si viene como 'Man' o 'Woman'
+                if genero == 'Man':
+                    genero = 'Male'
+                elif genero == 'Woman':
+                    genero = 'Female'
+
+                # Guardar edad y género si aún no están definidos
                 if person.edad is None:
                     person.edad = edad
                 if person.genero is None:
