@@ -1,8 +1,50 @@
 from django.shortcuts import render
+from apps.recognition.models.person import Person, FaceImage
+from PIL import Image
+import numpy as np
+from apps.recognition.models.person import FaceModelSingleton
 from apps.recognition.services.face_recognition_service import FaceRecognitionService
-from apps.recognition.models.person import FaceImage
 
 face_service = FaceRecognitionService()
+
+def register_person(request):
+    if request.method == 'POST':
+        dni = request.POST.get('dni')
+        nombre = request.POST.get('nombre')
+        apellidos = request.POST.get('apellidos')
+        foto = request.FILES.get('foto')
+
+        if not foto:
+            return render(request, 'recognition/register.html', {'error': 'Se requiere una foto'})
+
+        if Person.objects.filter(dni=dni).exists():
+            return render(request, 'recognition/register.html', {'error': 'El DNI ya está registrado'})
+
+        person = Person.objects.create(dni=dni, nombre=nombre, apellidos=apellidos)
+
+        try:
+            # Procesar imagen
+            image = Image.open(foto).convert('RGB').resize((640, 640))
+            image_np = np.array(image)
+
+            model = FaceModelSingleton.get_model()
+            faces = model.get(image_np)
+
+            if not faces:
+                person.delete()
+                return render(request, 'recognition/register.html', {'error': 'No se detectó ninguna cara'})
+
+            embedding = faces[0].embedding.tolist()
+            FaceImage.objects.create(person=person, imagen=foto, embedding=embedding)
+
+        except Exception as e:
+            person.delete()
+            return render(request, 'recognition/register.html', {'error': f'Error procesando imagen: {e}'})
+
+        return render(request, 'recognition/person_registered.html', {'person': person})
+
+    return render(request, 'recognition/register.html')
+
 
 def upload_and_recognize(request):
     context = {}
@@ -17,7 +59,6 @@ def upload_and_recognize(request):
             person = face_service.find_best_match(embedding)
 
             if person:
-                # Guardar edad y género si aún no están en la base de datos
                 if person.edad is None:
                     person.edad = edad
                 if person.genero is None:
